@@ -1,0 +1,201 @@
+﻿@page
+@using WebAPlicationContacts.Entitys
+@model ContactModel
+@{
+    ViewData["Title"] = "Contact";
+}
+
+@if (TempData["Mensaje"] != null)
+{
+
+    if (TempData["Type"].ToString() == "Succes")
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["Mensaje"]
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger" role="alert">
+            @TempData["Mensaje"]
+        </div>
+    }
+
+
+}
+
+<script>
+    
+    var Personas = [];
+    var Contacts = [];
+
+    function ChargeSelect(selectName,array,valueName, TextName) {
+        $(selectName).empty();
+
+        for (i = 0; i < array.length; i++) {
+
+            $(selectName).append($('<option>', {
+                value: array[i][valueName],
+                text: array[i][TextName]
+            }));
+
+        }
+    }
+
+    function CargarPersonas(selectName) {
+
+        $.ajax({
+            url: '/Contact?handler=Personas',
+            method: 'GET',
+            contentType: "application/json",
+            dataType: "json",
+            success: function (response) {
+                // Manejar la respuesta del controlador si es necesario
+                 Personas = response;
+            
+                ChargeSelect(selectName,Personas,"identification","names");
+            },
+            error: function () {
+                // Manejar errores si es necesario
+            }
+        });
+
+    }
+
+    $(document).ready(function () {
+
+        $('#usuario').on('change', function () {
+
+            let CurrentValue = this.value;
+           
+            let exist = Personas.find(p => p.identification == CurrentValue);
+
+            if (exist) {
+                Contacts = exist.contacts;
+                ChargeSelect("#Contact", exist.contacts, "name", "name");
+                setTimeout(function () {
+                    $('#Contact').change();
+                }, 100);
+            }
+
+        });
+
+        $('#Contact').on('change', function () {
+
+            let CurrentContactInfo = Contacts.find(c => c.name == this.value);
+
+            if (CurrentContactInfo) {
+
+                $(".SectionContactInfo").removeClass("d-none");
+                $('#Contactname').prop('readonly', true);
+                $("#Contactname").val(CurrentContactInfo.name);
+                $("#ContactTel").val(CurrentContactInfo.tel1);
+                $("#ContactTel2").val(CurrentContactInfo.tel2);
+                $("#ContactEmail").val(CurrentContactInfo.email1);
+                $("#ContactEmail2").val(CurrentContactInfo.email2);
+                $("#ContactAddress").val(CurrentContactInfo.address1);
+                $("#ContactAddress2").val(CurrentContactInfo.address2);
+                $("#EditMode").val(1);
+            }
+
+        });
+
+        $("#btnAdd").on('click', function () {
+
+            $(".SectionContactInfo").removeClass("d-none");
+            $("#EditMode").val(0);
+            $('#Contactname').prop('readonly', false);
+            $("#Contactname").val("");
+            $("#ContactTel").val("");
+            $("#ContactTel2").val("");
+            $("#ContactEmail").val("");
+            $("#ContactEmail2").val("");
+            $("#ContactAddress").val("");
+            $("#ContactAddress2").val("");
+
+        });
+
+
+        CargarPersonas("#usuario");
+
+        setTimeout(function () {
+            $("#usuario").change();
+        }, 100);
+
+        
+     
+    });
+   
+</script>
+
+
+
+
+<div class="container mt-5">
+    <h1 class="mb-4">Formulario de Contactos</h1>
+    <form method="post">
+
+        <input id="EditMode" name="EditMode"  hidden/>
+
+        <div class="mb-3">
+            <label for="documento" class="form-label">Usuario</label>
+            <select  class="form-control" id="usuario" name="usuario" placeholder="Documento de Identidad">
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="documento" class="form-label">Contacto</label>
+            <select class="form-control" id="Contact" name="Contact" placeholder="Contacto">
+            </select>
+            <button id="btnAdd" type="button" class="btn btn-success btn-sm mt-2">
+                <span class="oi oi-plus" aria-hidden="true">Add Contact</span>
+            </button>
+        </div>
+
+
+
+        <div class="SectionContactInfo d-none">
+
+            
+                <h1 class="mb-4">Informacion Contacto</h1>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">*Nombre Contacto</label>
+                    <input type="text" readonly class="form-control" id="Contactname" name="Contactname" placeholder="Nombre Contacto" required>
+                </div>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">*Telefono Contacto</label>
+                    <input type="text" class="form-control" id="ContactTel" name="ContactTel" placeholder="Telefono Contacto" required>
+                </div>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">Telefono Contacto2</label>
+                    <input type="text" class="form-control" id="ContactTel2" name="ContactTel2" placeholder="Telefono Contacto2">
+                </div>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">*Email Contacto</label>
+                    <input type="text" class="form-control" id="ContactEmail" name="ContactEmail" placeholder="Email Contacto" required>
+                </div>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">Email Contacto2</label>
+                    <input type="text" class="form-control" id="ContactEmail2" name="ContactEmail2" placeholder="Email Contacto2">
+                </div>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">*Direccion Contacto</label>
+                    <input type="text" class="form-control" id="ContactAddress" name="ContactAddress" placeholder="Direccion Contacto" required>
+                </div>
+                <div class="mb-3">
+                    <label for="documento" class="form-label">Direccion Contacto2</label>
+                    <input type="text" class="form-control" id="ContactAddress2" name="ContactAddress2" placeholder="Direccion Contacto2">
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+           
+
+        </div>
+        
+
+       
+    </form>
+</div>
+   
+
+   
+
